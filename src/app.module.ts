@@ -9,12 +9,14 @@ import { Role } from './roles/entities/role.entity';
 import { ClsModule } from 'nestjs-cls';
 import { RecoveryToken } from './user/entities/recovery-token.entity';
 import { LoggerModule } from './logger/logger.module';
+import { CalendarModule } from './calendar/calendar.module';
+import { Calendar } from './calendar/entities/calendar.entity';
 
 @Module({
   imports: [
     LoggerModule,
     ConfigModule.forRoot({
-      isGlobal: true, 
+      isGlobal: true,
     }),
     ClsModule.forRoot({
       global: true,
@@ -31,7 +33,7 @@ import { LoggerModule } from './logger/logger.module';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [User, Role, RecoveryToken],
+        entities: [User, Role, RecoveryToken, Calendar],
         synchronize: true,
         logging: false,
       }),
@@ -39,9 +41,10 @@ import { LoggerModule } from './logger/logger.module';
     }),
     UserModule,
     RolesModule,
-    AuthModule
+    AuthModule,
+    CalendarModule
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }
