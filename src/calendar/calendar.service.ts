@@ -1,6 +1,6 @@
 import { ConflictException, ForbiddenException, HttpStatus, Inject, Injectable, LoggerService, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Like, Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
 import { UpdateCalendarDto } from './dto/update-calendar.dto';
 import { Calendar } from './entities/calendar.entity';
@@ -37,20 +37,23 @@ export class CalendarService {
     const isAdmin = roleDescriptions.includes('administrador');
     if (isAdmin) {
       return this.calendarRepository.find({
+        where: { deleted_at: null },
         order: {
           created_at: 'DESC'
         }
       });
     }
     return this.calendarRepository.find({
-      order: {
-        created_at: 'DESC'
-      },
       where: {
         visibility: CalendarVisibilityEnum.TODOS,
+        deleted_at: null
+      },
+      order: {
+        created_at: 'DESC'
       }
     });
   }
+
   async findAllByDate(): Promise<Calendar[]> {
     this.logger.log("Chamando " + CalendarService.name + " método findAll");
     const roles = await this.cls.get('roles');
@@ -64,31 +67,33 @@ export class CalendarService {
 
     if (isAdmin) {
       return this.calendarRepository.find({
-        order: {
-          created_at: 'DESC'
-        },
         where: {
           expirated_at: Between(today, tomorrow),
           status: StatusEnum.ABERTO,
+          deleted_at: null
+        },
+        order: {
+          created_at: 'DESC'
         }
       });
     }
 
     return this.calendarRepository.find({
-      order: {
-        created_at: 'DESC'
-      },
       where: {
         visibility: CalendarVisibilityEnum.TODOS,
         status: StatusEnum.ABERTO,
-        expirated_at: Between(today, tomorrow)
+        expirated_at: Between(today, tomorrow),
+        deleted_at: null
+      },
+      order: {
+        created_at: 'DESC'
       }
     });
   }
 
   async findOne(id: number): Promise<Calendar> {
     this.logger.log("Chamando " + CalendarService.name + " metodo findOne - id : " + id);
-    const calendar = await this.calendarRepository.findOne({ where: { id } });
+    const calendar = await this.calendarRepository.findOne({ where: { id, deleted_at: null } });
     if (!calendar) {
       this.logger.error(CalendarService.name + " calendar not found");
       throw new NotFoundException(`Calendar with ID ${id} not found`);
@@ -106,7 +111,8 @@ export class CalendarService {
   async remove(id: number): Promise<void> {
     this.logger.log("Chamando " + CalendarService.name + " metodo remove - id : " + id);
     const calendar = await this.findOne(id);
-    await this.calendarRepository.remove(calendar);
+    calendar.deleted_at = new Date();
+    await this.calendarRepository.save(calendar);
   }
 
   async findCalendarsByUser(userId?: number): Promise<Calendar[]> {
@@ -117,7 +123,8 @@ export class CalendarService {
     }
     return this.calendarRepository.find({
       where: {
-        user: { id: userId }
+        user: { id: userId },
+        deleted_at: null
       },
       relations: ['user'],
       order: {
@@ -136,5 +143,4 @@ export class CalendarService {
     calendar.status = StatusEnum.CONCLUIDO; // Assuming 'CONCLUIDO' is a valid status in StatusEnum
     return this.calendarRepository.save(calendar);
   }
-
 }

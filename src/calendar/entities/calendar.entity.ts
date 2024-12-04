@@ -1,9 +1,7 @@
 import { CalendarEnum, CalendarVisibilityEnum, StatusEnum } from "src/enum/calendar.enum";
 import { User } from "src/user/entities/user.entity";
-import { CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
 import { Column } from "typeorm";
-
-
 
 @Entity()
 export class Calendar {
@@ -31,8 +29,8 @@ export class Calendar {
     @Column()
     expirated_at: Date;
     
-    @Column({nullable: true})
-    description: String;
+    @Column({ nullable: true })
+    description: string;
 
     @CreateDateColumn()
     created_at: Date;
@@ -40,6 +38,9 @@ export class Calendar {
     @UpdateDateColumn()
     updated_at: Date;
 
+    @DeleteDateColumn()
+    deleted_at: Date;
+
     @ManyToOne(() => User, user => user.calendars)
-    user: User
+    user: User;
 }

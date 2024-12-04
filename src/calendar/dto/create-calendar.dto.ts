@@ -26,6 +26,6 @@ export class CreateCalendarDto {
     @ApiProperty()
     @IsOptional()
     @IsString()
-    description: String;
+    description: string;
 
 }
